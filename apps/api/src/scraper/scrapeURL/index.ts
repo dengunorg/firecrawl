@@ -54,6 +54,7 @@ import {
   ScrapeRetryLimitError,
   BrandingNotSupportedError,
   XTwitterConfigurationError,
+  LinkedInConfigurationError,
 } from "./error";
 import { ScrapeRetryTracker } from "./retryTracker";
 import { executeTransformers } from "./transformers";
@@ -837,7 +838,8 @@ async function scrapeURLLoop(meta: Meta): Promise<ScrapeUrlResponse> {
               error.error instanceof ProxySelectionError ||
               error.error instanceof NoCachedDataError ||
               error.error instanceof AgentIndexOnlyError ||
-              error.error instanceof XTwitterConfigurationError
+              error.error instanceof XTwitterConfigurationError ||
+              error.error instanceof LinkedInConfigurationError
             ) {
               throw error.error;
             } else if (error.error instanceof LLMRefusalError) {

@@ -31,6 +31,28 @@ export class XTwitterConfigurationError extends TransportableError {
   }
 }
 
+export class LinkedInConfigurationError extends TransportableError {
+  constructor() {
+    super(
+      "SCRAPE_LINKEDIN_CONFIGURATION_ERROR",
+      'LinkedIn profile scraping requires a session cookie. Pass your li_at cookie in the request headers: { "headers": { "Cookie": "li_at=YOUR_VALUE" } }',
+    );
+  }
+
+  serialize() {
+    return super.serialize();
+  }
+
+  static deserialize(
+    _: ErrorCodes,
+    data: ReturnType<typeof this.prototype.serialize>,
+  ) {
+    const x = new LinkedInConfigurationError();
+    x.stack = data.stack;
+    return x;
+  }
+}
+
 export class NoEnginesLeftError extends TransportableError {
   public fallbackList: Engine[];
 

@@ -28,6 +28,11 @@ import {
   xTwitterMaxReasonableTime,
   isXTwitterUrl,
 } from "./x-twitter";
+import {
+  scrapeURLWithLinkedIn,
+  linkedInMaxReasonableTime,
+  isLinkedInProfileUrl,
+} from "./linkedin";
 import { queryEngpickerVerdict, useIndex } from "../../../services";
 import { hasFormatOfType } from "../../../lib/format-utils";
 import { getPDFMaxPages } from "../../../controllers/v2/types";
@@ -54,7 +59,8 @@ export type Engine =
   | "index"
   | "index;documents"
   | "wikipedia"
-  | "x-twitter";
+  | "x-twitter"
+  | "linkedin";
 
 const useFireEngine =
   config.FIRE_ENGINE_BETA_URL !== "" &&
@@ -70,8 +76,10 @@ const useWikipedia =
 const useXTwitter =
   (config.XAI_API_KEY !== undefined && config.XAI_API_KEY !== "") ||
   config.USE_DB_AUTHENTICATION === true;
+const useLinkedIn = usePlaywright;
 
 const engines: Engine[] = [
+  ...(useLinkedIn ? ["linkedin" as const] : []),
   ...(useXTwitter ? ["x-twitter" as const] : []),
   ...(useWikipedia ? ["wikipedia" as const] : []),
   ...(useIndex ? ["index" as const, "index;documents" as const] : []),
@@ -192,6 +200,7 @@ const engineHandlers: {
   document: scrapeDocument,
   wikipedia: scrapeURLWithWikipedia,
   "x-twitter": scrapeURLWithXTwitter,
+  linkedin: scrapeURLWithLinkedIn,
 };
 
 const engineMRTs: {
@@ -218,6 +227,7 @@ const engineMRTs: {
   document: documentMaxReasonableTime,
   wikipedia: wikipediaMaxReasonableTime,
   "x-twitter": xTwitterMaxReasonableTime,
+  linkedin: linkedInMaxReasonableTime,
 };
 
 const engineOptions: {
@@ -545,6 +555,27 @@ const engineOptions: {
     },
     quality: 1500,
   },
+  linkedin: {
+    features: {
+      actions: false,
+      waitFor: false,
+      screenshot: false,
+      "screenshot@fullScreen": false,
+      pdf: false,
+      document: false,
+      audio: false,
+      video: false,
+      atsv: false,
+      location: false,
+      mobile: false,
+      skipTlsVerification: true,
+      useFastMode: true,
+      stealthProxy: false,
+      branding: false,
+      disableAdblock: true,
+    },
+    quality: 1500,
+  },
 };
 
 export function shouldUseIndex(meta: Meta) {
@@ -662,6 +693,16 @@ export async function buildFallbackList(meta: Meta): Promise<
     const xTwitterIndex = _engines.indexOf("x-twitter");
     if (xTwitterIndex !== -1) {
       _engines.splice(xTwitterIndex, 1);
+    }
+  }
+
+  if (isLinkedInProfileUrl(meta.url) && _engines.includes("linkedin")) {
+    _engines.length = 0;
+    _engines.push("linkedin");
+  } else if (!isLinkedInProfileUrl(meta.url)) {
+    const linkedInIndex = _engines.indexOf("linkedin");
+    if (linkedInIndex !== -1) {
+      _engines.splice(linkedInIndex, 1);
     }
   }
 
