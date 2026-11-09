@@ -1,0 +1,36 @@
+# Dengun overrides — auto-loaded by `docker compose` on top of docker-compose.yaml.
+# Kept in a separate file so upstream syncs of docker-compose.yaml don't conflict.
+#
+# Sized for the production box: t3a.large (2 vCPU / 8 GB RAM, eu-west-2).
+# Observed on t3.xlarge before resize: ~8% CPU avg, api ~3.2 GB, playwright ~0.9 GB,
+# rabbitmq ~0.8 GB, everything else < 0.3 GB.
+#
+# Docker refuses to start a container whose `cpus` exceeds the host's CPU count,
+# so these limits MUST stay <= 2.0 on a 2-vCPU instance.
+
+services:
+  playwright-service:
+    cpus: 1.0
+    mem_limit: 3G
+    memswap_limit: 3G
+    restart: unless-stopped
+    environment:
+      MAX_CONCURRENT_PAGES: ${CRAWL_CONCURRENT_REQUESTS:-5}
+
+  api:
+    cpus: 1.5
+    mem_limit: 5G
+    memswap_limit: 5G
+    restart: unless-stopped
+    environment:
+      NUM_WORKERS_PER_QUEUE: ${NUM_WORKERS_PER_QUEUE:-4}
+      CRAWL_CONCURRENT_REQUESTS: ${CRAWL_CONCURRENT_REQUESTS:-5}
+
+  redis:
+    restart: unless-stopped
+
+  rabbitmq:
+    restart: unless-stopped
+
+  nuq-postgres:
+    restart: unless-stopped
